@@ -12,6 +12,7 @@ import PedChartUtils exposing (..)
 
 type alias Med =
   { for : String
+  , url : String
   , every : Int
   , max : String
   , childML: Float
@@ -22,14 +23,16 @@ type alias Model = (Med, Med)
 
 init : Model
 init =
-  ( { for = "Tylenol(Acetominophen)"
+  ( { for = "Tylenol"
+    , url = "http://www.tylenol.com/children-infants/safety/dosage-charts"
     , every = 4
     , max = "4 doses in 24 hours"
     , childML = 0
     , infantML = Just 0 }
-  , { for = "Motrin, Advil, Ibuprofen"
+  , { for = "Motrin"
+    , url = "http://www.motrin.com/children-infants/dosing-charts?icid=home|tout|1"
     , every = 6
-    , max = "40 mg/kg in 24 hours"
+    , max = "4 doses in 24 hours"
     , childML = 0
     , infantML = Just 0 } )
 
@@ -71,17 +74,32 @@ medView address med =
           "N/A"
 
   in
-    div [ ]
-    [ h2 [] [ text med.for ]
-    , span [] [ text ("Infant Dosage: " ++ infantDose) ]
-    , br [] []
-    , span [] [ text ("Dosage: " ++ (toString med.childML) ++ " ml") ]
-    , br [] []
-    , br [] []
+    div [ class "col-xs-12 col-md-4" ]
+    [ a [ href med.url, target "_blank" ] [ h3 [] [ text med.for ] ]
+    , h4 [] [ text ("Child Dosage: " ++ (toString med.childML) ++ " ml") ]
+    , h4 [] [ text ("Infant Dosage: " ++ infantDose) ]
     , span [] [ text ("Given every " ++ (toString med.every) ++ " hours") ]
     , br [] []
     , span [] [ text ("Max: " ++ med.max) ]
     ]
+
+inputView : Signal.Address Action -> Html
+inputView address =
+  div [ class "col-xs-12 col-sm-8" ]
+  [ input
+    [ class "form-control"
+    , type' "text"
+    , placeholder "Weight in lbs"
+    , onInput address Calc ]
+    []
+  ]
+
+
+disclaimerView : Html
+disclaimerView =
+  div
+    [ class "col-xs-12" ]
+    [ text "Disclaimer: This site is solely for reference. Always ask your doctor for the right dose."]
 
 
 view : Signal.Address Action -> Model -> Html
@@ -90,13 +108,16 @@ view address model =
     tylenol = fst model
     motrin = snd model
   in
-  div []
-    [ input
-      [ type' "text"
-      , placeholder "weight in lbs"
-      , onInput address Calc ]
-      []
-    , medView address tylenol
-    , medView address motrin
+  div [ class "container" ]
+    [ div [ class "row", style [("padding-top", "40px"), ("padding-bottom", "10px")] ]
+      [ inputView address ]
+
+    , div [ class "row" ]
+      [ medView address tylenol
+      , medView address motrin
+      ]
+
+    , div [ class "row", style [("padding-top", "60px")] ]
+      [ disclaimerView ]
     ]
 
